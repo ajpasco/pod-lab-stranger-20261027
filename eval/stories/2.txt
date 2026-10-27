@@ -1,0 +1,4 @@
+app/src/commands/reset.js
+app/src/commands/remove.js
+app/test/reset*.test.js
+app/test/remove*.test.js
