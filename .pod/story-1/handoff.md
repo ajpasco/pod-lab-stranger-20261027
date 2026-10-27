@@ -2,9 +2,9 @@
 
 ## What I built
 
-- `app/package.json`: name, `"type": "module"`, `bin` (`tally` -> `bin/tally.js`), `engines` `>=22 <23`.
-  No dependency field and no `scripts` field (the layout in TECH-SPEC section 13 names only those
-  fields).
+- `app/package.json`: exactly the four fields the TECH-SPEC section 13 layout names: `name`,
+  `"type": "module"`, `bin` (`tally` -> `bin/tally.js`) and `engines` `>=22 <23`. It has no
+  `version`, no dependency field and no `scripts` field.
 - `app/bin/tally.js`: the order of work of TECH-SPEC section 7. It runs `parseUsage`, then a dynamic
   `import()` of `../src/commands/<command>.js`, then `readCounters`, then the module's `run`, then
   `writeCounters` only if `writes` is true, then prints the output. All failures are mapped in one
@@ -61,3 +61,10 @@ is the "Between story 1 and story 2" state.
   `npm link` or install does not depend on it either, because npm makes bin targets executable.
   Someone may still want `git update-index --chmod=+x app/bin/tally.js`.
 - No test or convention seemed wrong to me.
+
+## Review round 1 (reader, at 6b706dc)
+
+- [block] `app/package.json` had a `"version": "1.0.0"` field. The section 13 layout does not name
+  it, and the handoff wrongly said the file held only the layout's fields. The finding is correct.
+  I removed the field and corrected the description above. `sh eval/run.sh` exits 0 again:
+  conventions 12 files, 0 problems; 134 of 134 tests pass (52 rows).
