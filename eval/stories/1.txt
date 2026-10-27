@@ -1,0 +1,12 @@
+app/package.json
+app/bin/tally.js
+app/src/usage.js
+app/src/store.js
+app/src/names.js
+app/src/errors.js
+app/src/commands/add.js
+app/src/commands/list.js
+app/test/add.test.js
+app/test/list.test.js
+app/test/usage.test.js
+app/test/store.test.js
