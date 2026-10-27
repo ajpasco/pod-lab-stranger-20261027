@@ -68,3 +68,13 @@ is the "Between story 1 and story 2" state.
   it, and the handoff wrongly said the file held only the layout's fields. The finding is correct.
   I removed the field and corrected the description above. `sh eval/run.sh` exits 0 again:
   conventions 12 files, 0 problems; 134 of 134 tests pass (52 rows).
+
+## Review round 2 (reader, at 1f449e5)
+
+- [block] `app/test/store.test.js` used single-quoted string literals for its JSON fixtures, which
+  breaks the section 13 double-quote rule. That rule covers the builder's tests too. The finding is
+  correct. Every such literal is now double-quoted with escaped inner quotes; no string literal
+  under `app/` uses single quotes any more. In the same file, the byte-order-mark fixture held an
+  invisible literal U+FEFF character, and it is now written as the visible escape sequence. My 19
+  unit tests pass. `sh eval/run.sh` exits 0: conventions 12 files, 0 problems; 134 of 134 tests
+  pass (52 rows).
