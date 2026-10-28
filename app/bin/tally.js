@@ -30,9 +30,24 @@ function messageOf(err) {
   return known ? line : `unexpected error: ${line}`;
 }
 
+// A reader that stops early, as `tally list | head -1` does, closes stdout under tally: that is
+// not a failure, so tally stops writing and exits 0 in silence (D-1, TECH-SPEC section 10).
+function isClosedStdout(err) {
+  return err instanceof Error && err.code === "EPIPE";
+}
+
+function fail(err) {
+  if (isClosedStdout(err)) return;
+  process.stderr.write(`tally: ${messageOf(err)}\n`);
+  process.exitCode = exitStatusOf(err);
+}
+
+// A write to a pipe can fail after main has returned, as an error event on stdout; without a
+// listener that event would end tally with a stack trace.
+process.stdout.on("error", fail);
+
 try {
   await main(process.argv.slice(2));
 } catch (err) {
-  process.stderr.write(`tally: ${messageOf(err)}\n`);
-  process.exitCode = exitStatusOf(err);
+  fail(err);
 }
