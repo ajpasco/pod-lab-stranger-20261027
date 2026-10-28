@@ -1,5 +1,14 @@
 # Eval plan and stories: tally
 
+**Revision 6.** Increment after acceptance, from defect D-1 (`docs/defects/D-1.md`; the founder,
+2026-10-27). Added: PRD REQ-02 acc. 11 (`docs/PRD.md` revision 5) and its row T-REQ-02-P8, owned by
+a new story 3 (TECH-SPEC revision 8, section 9). Changed to match: the story table (section 9), the
+gaps (section 10: the closed pipe is no longer untested), the coverage map (section 12) and the
+counts (section 13). No existing row, owner or state before the build is changed: 77 tests, 52 in
+story 1, 24 in story 2, 1 in story 3. No restraint row is added: the surface does not change (`list`
+still writes no file and makes no network attempt, T-REQ-02-N4 and N5), and the reader that reads to
+the end is already P1 and P2.
+
 **Revision 5.** Narrow revision of revision 4, from Decisions 2026-10-27, G2 (gate-7 finding G7-02):
 the rows are frozen in two packets. Changed: a line in the Commands section (8) stating the packets
 and a new "Freeze packets" subsection in section 9. No requirement, criterion, register row, test row,
@@ -27,8 +36,8 @@ tests with no single acceptance bullet (F5, R6-010); former open questions Q-A t
 their decided values (F6, R6-008); O1, P2 and P1 recorded as decided (F1, F2, F3). No requirement ID
 is created or changed, and no test is added or removed: still 76 tests.
 
-Built from `docs/PRD.md` revision 4 (REQ-01 to REQ-06, 60 acceptance criteria), `docs/TECH-SPEC.md`
-revision 7 (verification register of 60 rows, sections 7, 9, 11 and 13) and `docs/MOCKUP.md`
+Built from `docs/PRD.md` revision 5 (REQ-01 to REQ-06, 61 acceptance criteria), `docs/TECH-SPEC.md`
+revision 8 (verification register of 61 rows, sections 7, 9, 11 and 13) and `docs/MOCKUP.md`
 revision 4 (journeys). It creates no requirement ID. Criteria are cited as "acc. k", the k-th bullet
 under a requirement's Acceptance, counted as in the PRD, the register and the mockup.
 
@@ -196,6 +205,7 @@ Owner story and state before the build use these words: "node exit 1" means `nod
 | T-REQ-02-P5 | Given no file in the directory, when the person runs `list`, then (acc. 5) it exits 0, stdout is empty, and `tally.json` still does not exist. | integration | 1 | fails: node exit 1, expected 0 |
 | T-REQ-02-P6 | Given each success fixture: a file with counters; a file with none; no file; U-file; U-dir (P1 check first for the last two), when the person runs `list`, then (acc. 6) it exits 0 and the file is Unchanged (or still absent). | integration | 1 | fails: node exit 1, expected 0 |
 | T-REQ-02-P7 | Given U-file and, separately, U-dir, each holding b 2, a 1 and B 5 (P1 check first), when the person runs `list`, then (acc. 7) it exits 0, stdout is exactly `B 5`, `a 1`, `b 2` in that order, and the file is Unchanged. | integration | 1 | fails: node exit 1, expected 0 |
+| T-REQ-02-P8 | Given a file holding 100,000 counters, when the person runs `list` into a reader that takes the first part of the output and then stops reading, then (acc. 11) the reader got the first line, tally exits 0, stderr is empty, and the file is Unchanged. | integration | 3 | against main `77bf564`: fails, exit 1 with a stack trace or a `tally: unexpected error` line on stderr (defect D-1) |
 | T-REQ-02-N1 | Given a file holding coffee 3, when the person runs `list x`, then (acc. 8) it exits 2, is a Refusal, and the file is Unchanged. [X] | integration | 1 | fails: node exit 1, expected 2 |
 | T-REQ-02-N2 | Given a damaged file, for each of D1 to D14, when the person runs `list`, then (acc. 9) it exits 1, is a Refusal, and the file is Unchanged. [G list] | integration | 1 | fails: GUARD list not implemented (exit 1) |
 | T-REQ-02-N3 | Given U-read holding coffee 3 (P1 check first), when the person runs `list`, then (acc. 10) it exits 1, is a Refusal, and the file is Unchanged. [G list] | integration | 1 | fails: GUARD list not implemented (exit 1) |
@@ -332,7 +342,7 @@ never used in their place.
       message and a non-zero exit before any test or check starts, if the major is not 22;
    2. `sh eval/conventions.sh` (Node 22.x running `eval/conventions/check.mjs` on `app/`);
    3. `node --test eval/tests/*.test.mjs` (a shell glob, not the directory form; Decisions
-      2026-10-27, F6 C) running the 76 rows of section 5, using Node's built-in reporter with no
+      2026-10-27, F6 C) running the 77 rows of section 5, using Node's built-in reporter with no
       reporter flag.
 
    `eval/run.sh` runs every step, logs every result, and exits non-zero if any step failed (F6 E);
@@ -374,15 +384,19 @@ is the evidence the verification register names. Failures of the conventions ste
 |---|---|---|---|
 | 1: `add` and `list` | `app/package.json`, `app/bin/tally.js`, `app/src/usage.js`, `app/src/store.js`, `app/src/names.js`, `app/src/errors.js`, `app/src/commands/add.js`, `app/src/commands/list.js`; builder's own tests `app/test/add.test.js`, `app/test/list.test.js`, `app/test/usage.test.js`, `app/test/store.test.js` | none (starts from an empty `app/`) | all 52: the 44 of REQ-01 (T-REQ-01-P1 to P5, N1 to N13), REQ-02 (P1 to P7, N1 to N5), REQ-05 (P1, N1 to N6), REQ-06 (P1, N1 to N6), and the eight usage rows T-REQ-03-N4 to N7 and T-REQ-04-N4 to N7, which `usage.js` makes green |
 | 2: `reset` and `remove` | `app/src/commands/reset.js`, `app/src/commands/remove.js`; builder's own tests `app/test/reset*.test.js`, `app/test/remove*.test.js` | story 1 (`add`, `list`, and `usage.js`, `store.js`, `names.js`, `errors.js`, all complete in story 1) | all 24: REQ-03 (P1, P2, N1 to N3, N8 to N14) and REQ-04 (P1, P2, N1 to N3, N8 to N14) |
+| 3: `list` into a reader that stops early (defect D-1) | `app/bin/tally.js`; builder's own tests `app/test/tally*.test.js` | stories 1 and 2 (merged; an increment after acceptance) | 1: T-REQ-02-P8 |
 
-- Scope is disjoint: the two stories share no file, and neither owns anything under `eval/`, `docs/` or
+- Scope is disjoint for stories 1 and 2: they share no file, and neither owns anything under `eval/`, `docs/` or
   `.github/`, nor the root `package.json`.
 - No story's tests depend on a later story's files. Story 1's rows never run `reset` or `remove` to
   their end (T-REQ-02-P3 starts from a file holding coffee at 0; T-REQ-06-N2 and N3 stop at the usage
   check). The eight usage rows moved to story 1 (T-REQ-03-N4 to N7, T-REQ-04-N4 to N7; R6-007) also
   stop at the usage check with exit 2, before any `reset` or `remove` module would be reached, so story
   1 depends on no story 2 file. Story 2's rows use story 1's `add` and `list`, which exist by then.
-- Every one of the 76 tests has exactly one owner (52 in story 1, 24 in story 2). Story 1 is one
+- Story 3 is an increment after acceptance and owns a file story 1 owned (`app/bin/tally.js`). The
+  disjoint-scope rule is for stories built in parallel, not for increments in sequence (INCREMENT.md
+  section 3).
+- Every one of the 77 tests has exactly one owner (52 in story 1, 24 in story 2, 1 in story 3). Story 1 is one
   coherent change (the shared parts, two commands and the usage check); story 2 is two small modules.
 - **State between the stories:** until story 2 lands, a valid `reset` or `remove` exits 1 with a
   `tally: ...` line, which is why every story 2 row that expects exit 1 carries Rule G.
@@ -440,7 +454,11 @@ Things the plan records openly:
   numbers, a duplicate key read last-wins (E6, D1c); the Unicode `White_Space` set beyond the ordinary
   space; code-point order for characters outside the Basic Multilingual Plane; `app/package.json`
   declaring `bin`; the form of an unexpected internal error. The tests use the ordinary space as the
-  PRD does.
+  PRD does. One case of that last gap is now tested: a reader that stops early is not an error at all
+  (REQ-02 acc. 11, T-REQ-02-P8, defect D-1); the form of every other unexpected error is still
+  untested. Accepted gap: no row protects the other half of the decision, that an error writing stdout
+  other than a closed pipe stays under D5, so a fix that swallowed every error would pass
+  T-REQ-02-P8; the brief states that half and the fresh reader holds it.
 
 ### Untestable as written
 
@@ -473,25 +491,29 @@ precondition (F3; section 3), so none remains open.
 ## 12. Coverage map (criterion to test)
 
 - REQ-01: acc. 1 P1; 2 P2; 3 P3; 4 P4; 5 P5; 6 N1; 7 N2; 8 N3; 9 N4; 10 N5; 11 N6; 12 N7 and N8; 13 N9.
-- REQ-02: acc. 1 P1; 2 P2; 3 P3; 4 P4; 5 P5; 6 P6; 7 P7; 8 N1; 9 N2; 10 N3.
+- REQ-02: acc. 1 P1; 2 P2; 3 P3; 4 P4; 5 P5; 6 P6; 7 P7; 8 N1; 9 N2; 10 N3; 11 P8.
 - REQ-03: acc. 1 P1; 2 P2; 3 N1; 4 N2; 5 N3; 6 N4; 7 N5; 8 N6; 9 N7; 10 N8; 11 N9; 12 N10; 13 N11.
 - REQ-04: acc. 1 P1; 2 P2; 3 N1; 4 N2; 5 N3; 6 N4; 7 N5; 8 N6; 9 N7; 10 N8; 11 N9; 12 N10; 13 N11.
 - REQ-05: acc. 1 N1; 2 N2; 3 N3; 4 N4; 5 N5.
 - REQ-06: acc. 1 N1; 2 N2; 3 N3; 4 N4; 5 N5; 6 N6.
 
-The register's 60 rows are these 60 criteria one to one; each has the test above.
+The register's 61 rows are these 61 criteria one to one; each has the test above.
 
 ## 13. Counts
 
 | Requirement | Positive | Negative | Integration | e2e | Restraint | Expected to fail before any build | Owner |
 |---|---|---|---|---|---|---|---|
 | REQ-01 | 5 | 13 | 14 | 0 | 4 | 18 | 1 |
-| REQ-02 | 7 | 5 | 10 | 0 | 2 | 12 | 1 |
+| REQ-02 | 8 | 5 | 11 | 0 | 2 | 13 | 1 for 12 tests; 3 for P8 |
 | REQ-03 | 2 | 14 | 12 | 1 | 3 | 16 | 2 for 12 tests; 1 for N4 to N7 |
 | REQ-04 | 2 | 14 | 12 | 1 | 3 | 16 | 2 for 12 tests; 1 for N4 to N7 |
 | REQ-05 | 1 | 6 | 6 | 0 | 1 | 7 | 1 |
 | REQ-06 | 1 | 6 | 7 | 0 | 0 | 7 | 1 |
-| **Total** | **18** | **58** | **61** | **2** | **13** | **76** | 52 + 24 |
+| **Total** | **19** | **58** | **62** | **2** | **13** | **77** | 52 + 24 + 1 |
+
+Revision 6: 77 tests, 19 positive, 58 negative, 62 integration; T-REQ-02-P8 is story 3's and is
+expected to fail against main `77bf564` (defect D-1). The rest of this paragraph is revision 5's, for the
+first 76.
 
 76 tests: 18 positive, 58 negative; 61 integration, 2 e2e, 13 restraint, 0 unit, 0 production, 0
 review. **All 76 are expected to fail before any build**, and none passes or cannot run, so the

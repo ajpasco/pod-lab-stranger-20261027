@@ -1,9 +1,9 @@
-// Shared helpers for the acceptance tests of tally (docs/eval-plan.md, revision 5).
+// Shared helpers for the acceptance tests of tally (docs/eval-plan.md, revision 6).
 // This file is not a test file (it does not match *.test.mjs). It imports only Node built-ins and
 // nothing from app/: tally is observed from outside its process, as `node app/bin/tally.js <args>`.
 
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -249,6 +249,34 @@ export function tally(cwd, args, opts = {}) {
   });
   if (r.error && r.error.code !== "ETIMEDOUT") throw r.error;
   return { args, status: r.status, signal: r.signal, stdout: r.stdout ?? "", stderr: r.stderr ?? "" };
+}
+
+// Runs tally as tally() does, but its stdout goes to a reader that takes the first chunk and then
+// closes its end of the pipe, as `tally list | head -1` does (REQ-02 acc. 11, defect D-1).
+export function tallyClosedPipe(cwd, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [TALLY, ...args], { cwd, env: childEnv(), stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    const timer = setTimeout(() => child.kill("SIGKILL"), RUN_TIMEOUT_MS);
+    child.stdout.setEncoding("utf8");
+    child.stdout.once("data", (chunk) => {
+      stdout = chunk;
+      child.stdout.destroy();
+    });
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+    child.on("close", (status, signal) => {
+      clearTimeout(timer);
+      resolve({ args, status, signal, stdout, stderr });
+    });
+  });
 }
 
 const excerpt = (s) => JSON.stringify(s.length > EXCERPT ? s.slice(0, EXCERPT) + "..." : s);
