@@ -1,6 +1,10 @@
-# Technical blueprint: tally (revision 7)
+# Technical blueprint: tally (revision 8)
 
-Built from `docs/PRD.md` revision 4 and `docs/MOCKUP.md` revision 4, with the user's technical
+**Revision 8** (defect D-1, `docs/defects/D-1.md`; the founder, 2026-10-27): one register row for
+PRD REQ-02 acc. 11 (`list` into a reader that stops early: silent, exit 0, file unchanged), one
+decision row in section 10 saying a closed stdout is not an unexpected error, and story 3 in section
+9, which owns `app/bin/tally.js` for the fix. Built from `docs/PRD.md` revision 5 (revision 4
+up to this blueprint's revision 7) and `docs/MOCKUP.md` revision 4, with the user's technical
 answers (Q1, Q19, Q20, Q21), the user's gate-6 and gate-7 decisions (`docs/inputs/decisions-2026-10-27.md`, cited
 as "Decisions 2026-10-27, F<n>" or "G<n>") and the gate-4 recorded defaults. Revision 7 is a narrow
 revision applying G1 (the user, Decisions 2026-10-27, G1): `eval/run.sh` runs every step of the
@@ -128,6 +132,7 @@ container of section 6 (the user, Decisions 2026-10-27, G1), as the calling non-
 | REQ-02 acc. 8: `list x` exits 2, file unchanged | Child-process test | Row result: exit 2, stdout empty, stderr non-empty, bytes equal |
 | REQ-02 acc. 9: damaged file, `list` exits 1, file as it was | Child-process test, each damaged starting state | Row result per state: exit 1, stdout empty, stderr non-empty, bytes equal |
 | REQ-02 acc. 10: unreadable file, `list` exits 1 | Child-process test with permissions | Row result: exit 1, stdout empty, stderr non-empty, file as before |
+| REQ-02 acc. 11: the reader of `list`'s output stops early: nothing on stderr, exit 0, file unchanged | Child-process test whose stdout is a pipe the test closes after the first chunk, over a file of 100,000 counters (output far larger than a pipe's buffer, so tally is still writing when the reader goes away) | Row result: the reader got the first line, exit 0, stderr empty, bytes equal |
 | REQ-03 acc. 1: `reset coffee` with `coffee` 3, `tea` 2: silent, exit 0, `coffee` 0, `tea` 2 | Child-process test | Row result: exit 0, silent, counters as stated |
 | REQ-03 acc. 2: after that reset, `list` includes `coffee 0` | Child-process test (`reset`, then `list`) | Row result: stdout includes line `coffee 0` |
 | REQ-03 acc. 3: no counter `coffee`, `reset coffee` exits 1, file unchanged | Child-process test | Row result: exit 1, stdout empty, stderr non-empty, bytes equal |
@@ -331,7 +336,11 @@ driving the CLI as a child process (section 4).
   plan takes each story 2 row's "expected state before the build" from that fact. The same holds for
   the usage rows of REQ-03 and REQ-04, which already pass after story 1, because `usage.js` decides
   them.
-- **Protected**: neither story owns anything under `eval/`, `docs/` or `.github/`, and neither
+- **Story 3, `list` into a reader that stops early** (an increment after acceptance, defect D-1):
+  PRD REQ-02 acc. 11. Owns only `app/bin/tally.js`, and its own tests under `app/test/`, named
+  `tally*.test.js`. It starts from stories 1 and 2 merged and changes no other file: a closed stdout
+  is mapped where every other failure is mapped (section 2, section 10).
+- **Protected**: no story owns anything under `eval/`, `docs/` or `.github/`, and none
   touches the root `package.json` (protected paths). tally's own `package.json` is `app/package.json`.
 - **Integration**: the acceptance tests run `app/bin/tally.js`; there is no other integration point.
 
@@ -362,6 +371,7 @@ driving the CLI as a child process (section 4).
 | Usage is checked, and exit 2 reported, before the file is read or written | PRD REQ-06 |
 | Exit 0 success, 2 usage error, 1 could not be carried out; failures print nothing on stdout, a line on stderr, and leave the file as it was | PRD §4 "Usage error", "Could not be carried out", "Failure" |
 | An unexpected internal error exits 1 with one `tally: …` line on stderr, no stack trace | the user (Q20, D5) |
+| A reader that stops early (a closed stdout, `EPIPE`) is not an error: tally stops writing, prints nothing on stderr and exits 0; it is handled in `bin/tally.js`, both when the write throws and when the error arrives later as an event on stdout. Any other error writing stdout stays under D5 | the behaviour: the founder (`docs/defects/D-1.md`; PRD REQ-02 acc. 11); its placement in `bin/tally.js`: the blueprint, following section 2 and D5 |
 | An existing file is checked for write permission before the rename, because rename ignores it | PRD §4 "Unwritable tally.json" (file does not allow writing) |
 | A symlinked `tally.json` is replaced by a regular file on the first write: known limitation, no new behaviour | the user (Q20, D6) |
 | Limits: file at most 300 lines, checked by `check.mjs`; function at most 50 lines and cyclomatic complexity at most 10, held by the fresh reader | the user (Q20, D2) |
